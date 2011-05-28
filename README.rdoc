@@ -1,0 +1,3 @@
+= Backtime
+
+Redmine plugin for tracking time usage between professionals.

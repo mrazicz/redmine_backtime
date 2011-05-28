@@ -1,0 +1,10 @@
+cs:
+  field_time: "Čas"
+  field_back_time: "Dlužný čas"
+  field_user: "Uživatel"
+  field_description: "Popis"
+  button_save: "Uložit"
+  label_time: "Čas"
+  label_back_time: "Dlužný čas"
+  label_user: "Uživatel"
+  label_description: "Popis"

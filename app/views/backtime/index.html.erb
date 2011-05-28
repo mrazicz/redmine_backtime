@@ -1,0 +1,37 @@
+<h2>BackTime</h2>
+
+<p><strong><%= @time_sum %> : <%= @backtime_sum %></strong></p>
+
+<% labelled_tabular_form_for :backtime, @backtime, :url => { :action => :add } do |form| %>
+  <%= render :partial => 'form', :locals => { :form => form } %>
+<% end %>
+
+<% if @backtimes and @backtimes.any? %>
+<table class='list'>
+  <thead>
+    <tr>
+      <th><%= l(:label_time) %></th>
+      <th><%= l(:label_back_time) %></th>
+      <th><%= l(:label_user) %></th>
+      <th><%= l(:label_description) %></th>
+    </tr>
+  <thead>
+  <tbody>
+  <% for b in @backtimes %>
+    <tr class="<%= cycle 'odd', 'even' %>">
+      <td><%= b.time %></td>
+      <td><%= b.back_time %></td>
+      <td><%= b.user %></td>
+      <td><%= b.description %></td>
+    </tr>
+  <% end %>
+  </tbody>
+</table>
+
+<hr>
+<%= pagination_links(@backtimes_pages) %>
+</hr>
+
+<% else %>
+<p class='nodata'>No data</p>
+<% end %>

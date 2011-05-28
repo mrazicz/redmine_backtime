@@ -1,0 +1,17 @@
+<div class='box'>
+  <p>
+    <%= form.text_field :time, :required => true %>
+  </p>
+  <p>
+    <%= form.select(:user_id, @users_list, :required => true) %>
+  </p>
+  <p>
+    <%= form.text_field :back_time, :required => true %>
+  </p>
+  <p>
+    <%= form.text_area(:description, :cols => "20", :rows => "5") %>
+  </p>
+  <p><%= submit_tag l(:button_save) %></p>
+</div>
+
+
