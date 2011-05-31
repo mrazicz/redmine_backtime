@@ -1,9 +1,14 @@
 class BacktimeController < ApplicationController
-  #unloadable
+  unloadable
 
-  before_filter :get_users
-
-  def index
+  def index    
+    @users_list = Group.find_by_lastname("BackTime")
+    unless @users_list.nil?
+      @users_list = @users_list.users.map {
+        |u| [u.lastname + ' ' + u.firstname, u.id]
+      }
+    end
+    
     @time_sum = Backtime.sum('Time')
     @backtime_sum = Backtime.sum('Back_time')
     @backtimes_pages, @backtimes = paginate(:backtime, :order => 'created_at desc')
@@ -14,19 +19,11 @@ class BacktimeController < ApplicationController
   def add
     @backtime = Backtime.new(params[:backtime])
     if @backtime.save
-      flash[:notice] = 'Post was successfully saved.'
+      flash[:notice] = l(:post_saved)
       redirect_to :action => :index
     else
       flash[:error] = @backtime.errors.full_messages.join("<br />")
       redirect_to :action => :index
     end
-  end
-  
-  private
-  
-  def get_users
-    @users_list = Group.find_by_lastname("BackTime").users.map {
-      |u| [u.lastname + ' ' + u.firstname, u.id]
-    }
   end
 end

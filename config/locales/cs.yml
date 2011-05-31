@@ -8,3 +8,6 @@ cs:
   label_back_time: "Dlužný čas"
   label_user: "Uživatel"
   label_description: "Popis"
+  post_saved: "Záznam byl uspěšně přidán."
+  backtime_nonexist: "Skupina BackTime neexistuje. Pro přidávání nových záznamu ji prosím vytvořte."
+  backtime_nomembers: "Ve skupině BackTime nejsou žádní uživatelé."

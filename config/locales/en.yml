@@ -8,3 +8,6 @@ en:
   label_back_time: "Back time"
   label_user: "User"
   label_description: "Description"
+  post_saved: "Post was successfully saved."
+  backtime_nonexist: "Nonexisting group BackTime. For adding new records please create it."
+  backtime_nomembers: "No members in group BackTime."

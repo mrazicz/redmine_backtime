@@ -2,8 +2,12 @@
 
 <p><strong><%= @time_sum %> : <%= @backtime_sum %></strong></p>
 
-<% labelled_tabular_form_for :backtime, @backtime, :url => { :action => :add } do |form| %>
-  <%= render :partial => 'form', :locals => { :form => form } %>
+<% if @users_list.nil? %>
+  <p><%= l(:backtime_nonexist) %></p>
+<% else %>
+  <% labelled_tabular_form_for :backtime, @backtime, :url => { :action => :add } do |form| %>
+    <%= render :partial => 'form', :locals => { :form => form } %>
+  <% end %>
 <% end %>
 
 <% if @backtimes and @backtimes.any? %>
