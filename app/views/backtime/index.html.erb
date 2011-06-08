@@ -1,6 +1,11 @@
-<h2>BackTime</h2>
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'redmine_backtime', :plugin => 'redmine_backtime' %>
+<% end %>
 
-<p><strong><%= @time_sum %> : <%= @backtime_sum %></strong></p>
+<h2>
+  BackTime
+  <div class='time_ratio'><%= @time_sum %> : <%= @backtime_sum %></div>
+</h2>
 
 <% if @users_list.nil? %>
   <p><%= l(:backtime_nonexist) %></p>
@@ -16,8 +21,8 @@
     <tr>
       <th><%= l(:label_time) %></th>
       <th><%= l(:label_back_time) %></th>
-      <th><%= l(:label_user) %></th>
-      <th><%= l(:label_description) %></th>
+      <th><%= l(:label_partner) %></th>
+      <th class='desription'><%= l(:label_description) %></th>
     </tr>
   <thead>
   <tbody>
@@ -25,8 +30,8 @@
     <tr class="<%= cycle 'odd', 'even' %>">
       <td><%= b.time %></td>
       <td><%= b.back_time %></td>
-      <td><%= b.user %></td>
-      <td><%= b.description %></td>
+      <td><%= b.partner %></td>
+      <td class='description'><%= b.description %></td>
     </tr>
   <% end %>
   </tbody>

@@ -9,7 +9,7 @@ module BacktimeUserPatch
     base.class_eval do
       unloadable
 
-      has_many :backtime, :dependent => :destroy
+      has_many :backtimes
 
     end
   end

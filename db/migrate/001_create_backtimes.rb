@@ -3,6 +3,7 @@ class CreateBacktimes < ActiveRecord::Migration
     
     create_table :backtimes do |t|
       t.column :user_id, :integer
+      t.column :partner_id, :integer
       t.column :time, :decimal, :precision => 6, :scale => 1
       t.column :back_time, :decimal, :precision => 7, :scale => 1
       t.column :description, :text

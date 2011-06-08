@@ -1,17 +1,18 @@
-<div class='box'>
+<fieldset class='box'>
+  <legend><%= l(:backtime_legend_create_new) %></legend>
   <p>
-    <%= form.text_field :time, :required => true %>
+    <%= form.select(:partner_id, @users_list, :reuqired => true) %>
   </p>
   <p>
-    <%= form.select(:user_id, @users_list, :required => true) %>
+    <%= form.text_field :time, :size => 7, :required => true %>
   </p>
   <p>
-    <%= form.text_field :back_time, :required => true %>
+    <%= form.text_field :back_time, :size => 7, :required => true %>
   </p>
   <p>
-    <%= form.text_area(:description, :cols => "20", :rows => "5") %>
+    <%= form.text_area(:description, :cols => "40", :rows => "5") %>
   </p>
   <p><%= submit_tag l(:button_save) %></p>
-</div>
+</fieldset>
 
 
