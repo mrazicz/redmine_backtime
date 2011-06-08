@@ -4,13 +4,6 @@ class BacktimeController < ApplicationController
   before_filter :member_of_backtime
 
   def index    
-    #@users_list = User.all(:select => 'users.*, SUM(backtimes.back_time) as backtime_total',
-    #                        :joins => [:groups], 
-    #                        :include => [:backtimes], 
-    #                        :conditions => ["users.id != ? AND groups_users.lastname = ?", User.current.id, "Backtime"], 
-    #                        :order => 'backtime_total desc'
-    #                       )
-    
     @users_list = Group.find_by_lastname('Backtime').users.all(:select => "users.*, SUM(backtimes.time) as times_total",
                            :joins => "LEFT JOIN backtimes AS backtimes ON backtimes.partner_id = users.id",
                            :group => "users.id",
@@ -24,9 +17,17 @@ class BacktimeController < ApplicationController
       }
     end
     
-    @time_sum = Backtime.sum('Time')
-    @backtime_sum = Backtime.sum('Back_time')
-    @backtimes_pages, @backtimes = paginate(:backtime, :order => 'created_at desc')
+    # id of current user
+    cuser = User.current.id
+    # tmp var for sum time and backtime
+    tmp_sum = Backtime.find(:all, :conditions => ["user_id = ? OR partner_id = ?", cuser, cuser]).to_a    
+    
+    @time_sum = tmp_sum.sum(&:time)
+    @backtime_sum = tmp_sum.sum(&:back_time)
+    @backtimes_pages, @backtimes = paginate(:backtime, 
+                                            :conditions => ["user_id = ? OR partner_id = ?", cuser, cuser], 
+                                            :order => 'created_at desc'
+                                           )
 
     @backtime = Backtime.new
   end
