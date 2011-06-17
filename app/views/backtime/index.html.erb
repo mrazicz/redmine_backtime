@@ -28,9 +28,15 @@
   <tbody>
   <% for b in @backtimes %>
     <tr class="<%= cycle 'odd', 'even' %>">
-      <td><%= b.time %></td>
-      <td><%= b.back_time %></td>
-      <td><%= b.partner %></td>
+      <% if b.user == User.current %>
+        <td><%= b.time %></td>
+        <td><%= b.back_time %></td>
+        <td><%= b.partner %></td>
+      <% else %>
+        <td><%= b.back_time %></td>
+        <td><%= b.time %></td>
+        <td><%= b.user %></td>      
+      <% end %>
       <td class='description'><%= b.description %></td>
     </tr>
   <% end %>

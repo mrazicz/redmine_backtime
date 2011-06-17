@@ -1,9 +1,13 @@
 require 'redmine'
 require 'dispatcher'
 require 'backtime_user_patch'
+require 'backtime_time_entry_patch'
+
+require_dependency 'redmine_backtime/hooks'
 
 Dispatcher.to_prepare do
   User.send(:include, BacktimeUserPatch) unless User.included_modules.include? BacktimeUserPatch
+  TimeEntry.send(:include, BacktimeTimeEntryPatch) unless TimeEntry.included_modules.include? BacktimeTimeEntryPatch
 end
 
 Redmine::Plugin.register :redmine_backtime do
