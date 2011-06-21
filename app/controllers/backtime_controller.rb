@@ -20,10 +20,11 @@ class BacktimeController < ApplicationController
     # id of current user
     cuser = User.current.id
     # tmp var for sum time and backtime
-    tmp_sum = Backtime.find(:all, :conditions => ["user_id = ? OR partner_id = ?", cuser, cuser]).to_a    
-    
-    @time_sum = tmp_sum.sum(&:time)
-    @backtime_sum = tmp_sum.sum(&:back_time)
+    tmp_sum1 = Backtime.find(:all, :conditions => ["user_id = ?", cuser]).to_a    
+    tmp_sum2 = Backtime.find(:all, :conditions => ["partner_id = ?", cuser]).to_a 
+
+    @time_sum = tmp_sum1.sum(&:time) + tmp_sum2.sum(&:back_time)
+    @backtime_sum = tmp_sum1.sum(&:back_time) + tmp_sum2.sum(&:time)
     @backtimes_pages, @backtimes = paginate(:backtime, 
                                             :conditions => ["user_id = ? OR partner_id = ?", cuser, cuser], 
                                             :order => 'created_at desc'
