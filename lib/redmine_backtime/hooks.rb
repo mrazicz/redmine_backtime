@@ -35,7 +35,7 @@ class Hooks < Redmine::Hook::ViewListener
                                 :user_id => User.current.id, 
                                 :back_time => 0, 
                                 :time => te[:hours],
-                                :description => "#{te[:comments]} (<a href='/issues/#{te[:issue_id]}'>#{te.issue.subject}</a>)"
+                                :description => "<a href='/issues/#{te[:issue_id]}'>#{te.issue.subject} ##{te.issue.id}</a>"
                                }
     elsif !tep.nil? && tep["backtime_time"].nil?
       te.backtime.delete unless te.backtime.nil?

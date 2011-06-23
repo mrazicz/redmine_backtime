@@ -43,9 +43,7 @@
   </tbody>
 </table>
 
-<hr>
-<%= pagination_links(@backtimes_pages) %>
-</hr>
+<p class="pagination"><%= pagination_links_full @backtimes_pages, @backtimes_count %></p>
 
 <% else %>
 <p class='nodata'>No data</p>

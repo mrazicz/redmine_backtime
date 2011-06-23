@@ -25,11 +25,30 @@ class BacktimeController < ApplicationController
 
     @time_sum = tmp_sum1.sum(&:time) + tmp_sum2.sum(&:back_time)
     @backtime_sum = tmp_sum1.sum(&:back_time) + tmp_sum2.sum(&:time)
-    @backtimes_pages, @backtimes = paginate(:backtime, 
-                                            :conditions => ["user_id = ? OR partner_id = ?", cuser, cuser], 
-                                            :order => 'created_at desc'
-                                           )
 
+    backtimes_with_issue = Backtime.all(:select => "backtimes.*, SUM(backtimes.time) as times", 
+                                         :conditions => ["time_entry_id IS NOT NULL AND (backtimes.user_id = ? OR backtimes.partner_id = ?)", cuser, cuser], 
+                                         :joins => "LEFT JOIN time_entries AS te ON te.id = time_entry_id", 
+                                         :group => 'te.issue_id')
+    backtimes_without_issue = Backtime.all(:conditions => ["time_entry_id IS NULL AND (user_id = ? OR partner_id = ?)", cuser, cuser])
+    backtimes_all = backtimes_with_issue + backtimes_without_issue
+
+    backtimes_all.each do |b|
+      unless b['times'].nil?
+        b['time'] = b['times']      
+        b['description'] = "<a href='/issues/#{b.time_entry.issue_id}'> ##{b.time_entry.issue_id}</a>: "
+        b['description'] += b.time_entry.issue.subject
+      end
+    end
+    backtimes_all = backtimes_all.sort_by(&:created_at).reverse
+    
+    # paginate results
+    @backtimes_count = backtimes_all.size
+    @backtimes_pages = Paginator.new self, @backtimes_count, per_page_option, params['page']
+    limit = @backtimes_pages.items_per_page
+    offset = @backtimes_pages.current.offset
+    @backtimes = backtimes_all[offset..offset+limit]
+    
     @backtime = Backtime.new
   end
 
