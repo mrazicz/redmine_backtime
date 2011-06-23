@@ -8,6 +8,7 @@ en:
   label_back_time: "Partner's time"
   label_partner: "BackTime partner"
   label_description: "Description"
+  label_date: "Date"
   post_saved: "Post was successfully saved."
   backtime_nonexist: "Nonexisting group BackTime. For adding new records please create it."
   backtime_nomembers: "No members in group BackTime."

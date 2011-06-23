@@ -23,6 +23,7 @@
       <th><%= l(:label_back_time) %></th>
       <th><%= l(:label_partner) %></th>
       <th class='desription'><%= l(:label_description) %></th>
+      <th><%= l(:label_date) %></th>
     </tr>
   <thead>
   <tbody>
@@ -38,6 +39,7 @@
         <td><%= b.user %></td>      
       <% end %>
       <td class='description'><%= b.description %></td>
+      <td><%= b.created_at.strftime('%Y-%m-%d') %></td>
     </tr>
   <% end %>
   </tbody>

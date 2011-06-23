@@ -38,6 +38,7 @@ class BacktimeController < ApplicationController
         b['time'] = b['times']      
         b['description'] = "<a href='/issues/#{b.time_entry.issue_id}'> ##{b.time_entry.issue_id}</a>: "
         b['description'] += b.time_entry.issue.subject
+        b['description'] += " [<a href='/projects/#{b.time_entry.issue.project.identifier}'>#{b.time_entry.issue.project.name}</a>]"
       end
     end
     backtimes_all = backtimes_all.sort_by(&:created_at).reverse

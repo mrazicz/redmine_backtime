@@ -8,6 +8,7 @@ cs:
   label_back_time: "Partnerův čas"
   label_partner: "BackTime partner"
   label_description: "Popis"
+  label_date: "Datum"
   post_saved: "Záznam byl uspěšně přidán."
   backtime_nonexist: "Skupina BackTime neexistuje. Pro přidávání nových záznamu ji prosím vytvořte."
   backtime_nomembers: "Ve skupině BackTime nejsou žádní uživatelé."
