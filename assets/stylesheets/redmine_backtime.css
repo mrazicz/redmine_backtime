@@ -1,0 +1,16 @@
+table.list th {
+  text-align: left;
+}
+
+table.list .description {
+  width: 40%;
+}
+
+.box {
+  width: 48%;
+  margin-right: 4%;
+}
+
+.time_ratio {
+  float: right;
+}
