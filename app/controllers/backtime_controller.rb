@@ -68,6 +68,7 @@ class BacktimeController < ApplicationController
 			end
     }
     
+    # sorting
     @sort_criteria.criteria.reverse.each{ |c, o|
     	backtimes_all = backtimes_all.sort_by(&c.to_sym)
     	backtimes_all.reverse! unless o 

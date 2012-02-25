@@ -59,19 +59,8 @@ class Querybacktime < ActiveRecord::Base
   ]
   cattr_reader :available_columns
 
-  named_scope :visible, lambda {|*args|
-    user = args.shift || User.current
-    base = Project.allowed_to_condition(user, :view_issues, *args)
-    user_id = user.logged? ? user.id : 0
-    {
-      :conditions => ["(#{table_name}.project_id IS NULL OR (#{base})) AND (#{table_name}.is_public = ? OR #{table_name}.user_id = ?)", true, user_id],
-      :include => :project
-    }
-  }
-
   def initialize (attributes = nil) 
     super attributes
-    #self.filters ||= { 'status_id' => {:operator => "o", :values => [""]} }
   end
 
   def after_initialize
@@ -198,7 +187,6 @@ class Querybacktime < ActiveRecord::Base
                            ).collect {|cf| QueryCustomFieldColumn.new(cf) }
   end
  
-
   def self.add_available_column(column)
     self.available_columns << (column) if column.is_a?(QueryColumn)
   end
@@ -294,33 +282,9 @@ class Querybacktime < ActiveRecord::Base
     group_by_column.try(:groupable)
   end
 
-  def project_statement
-    project_clauses = []
-    if project && !project.descendants.active.empty?
-      ids = [project.id]
-      if has_filter?("subproject_id")
-        case operator_for("subproject_id")
-        when '='
-          # include the selected subprojects
-          ids += values_for("subproject_id").each(&:to_i)
-        when '!*'
-          # main project only
-        else
-          # all subprojects
-          ids += project.descendants.collect(&:id)
-        end
-      elsif Setting.display_subprojects_issues?
-        ids += project.descendants.collect(&:id)
-      end
-      project_clauses << "#{Project.table_name}.id IN (%s)" % ids.join(',')
-    elsif project
-      project_clauses << "#{Project.table_name}.id = %d" % project.id
-    end
-    project_clauses.any? ? project_clauses.join(' AND ') : nil
-  end
-
+	#returns sql filter statement
+	#+options+ :partner_position indicates substitution of "partner_id"->"user_id" and "time"->"back_time" and vice versa
   def bt_filters(options)
-    # filters clauses
     filters_clauses = []
     filters.each_key do |field|
       v = values_for(field).clone
@@ -343,140 +307,9 @@ class Querybacktime < ActiveRecord::Base
 			end
     end if filters and valid?
 
-    #filters_clauses << project_statement
     filters_clauses.reject!(&:blank?)
     
     filters_clauses.any? ? filters_clauses.join(' AND ') : nil
-  end
-  
-  # Returns the issue count
-  def issue_count
-    Issue.visible.count(:include => [:status, :project], :conditions => statement)
-  rescue ::ActiveRecord::StatementInvalid => e
-    raise StatementInvalid.new(e.message)
-  end
-
-  # Returns the issue count by group or nil if query is not grouped
-  def issue_count_by_group
-    r = nil
-    if grouped?
-      begin
-        # Rails will raise an (unexpected) RecordNotFound if there's only a nil group value
-        r = Issue.visible.count(:group => group_by_statement, :include => [:status, :project], :conditions => statement)
-      rescue ActiveRecord::RecordNotFound
-        r = {nil => issue_count}
-      end
-      c = group_by_column
-      if c.is_a?(QueryCustomFieldColumn)
-        r = r.keys.inject({}) {|h, k| h[c.custom_field.cast_value(k)] = r[k]; h}
-      end
-    end
-    r
-  rescue ::ActiveRecord::StatementInvalid => e
-    raise StatementInvalid.new(e.message)
-  end
-
-  # Returns the issues
-  # Valid options are :order, :offset, :limit, :include, :conditions
-  def issues(options={})
-    order_option = [group_by_sort_order, options[:order]].reject {|s| s.blank?}.join(',')
-    order_option = nil if order_option.blank?
-    
-    joins = (order_option && order_option.include?('authors')) ? "LEFT OUTER JOIN users authors ON authors.id = #{Issue.table_name}.author_id" : nil
-
-    Issue.visible.scoped(:conditions => options[:conditions]).find :all, :include => ([:status, :project] + (options[:include] || [])).uniq,
-                     :conditions => statement,
-                     :order => order_option,
-                     :joins => joins,
-                     :limit  => options[:limit],
-                     :offset => options[:offset]
-  rescue ::ActiveRecord::StatementInvalid => e
-    raise StatementInvalid.new(e.message)
-  end
-  
-  # Returns the issues
-  # Valid options are :order, :offset, :limit, :include, :conditions
-  def issues(options={})
-    order_option = [group_by_sort_order, options[:order]].reject {|s| s.blank?}.join(',')
-    order_option = nil if order_option.blank?
-    
-    joins = (order_option && order_option.include?('authors')) ? "LEFT OUTER JOIN users authors ON authors.id = #{Issue.table_name}.author_id" : nil
-
-    Issue.visible.scoped(:conditions => options[:conditions]).find :all, :include => ([:status, :project] + (options[:include] || [])).uniq,
-                     :conditions => statement,
-                     :order => order_option,
-                     :joins => joins,
-                     :limit  => options[:limit],
-                     :offset => options[:offset]
-  rescue ::ActiveRecord::StatementInvalid => e
-    raise StatementInvalid.new(e.message)
-  end
-
-  # Returns the journals
-  # Valid options are :order, :offset, :limit
-  def journals(options={})
-    Journal.visible.find :all, :include => [:details, :user, {:issue => [:project, :author, :tracker, :status]}],
-                       :conditions => statement,
-                       :order => options[:order],
-                       :limit => options[:limit],
-                       :offset => options[:offset]
-  rescue ::ActiveRecord::StatementInvalid => e
-    raise StatementInvalid.new(e.message)
-  end
-
-  # Returns the versions
-  # Valid options are :conditions
-  def versions(options={})
-    Version.visible.scoped(:conditions => options[:conditions]).find :all, :include => :project, :conditions => project_statement
-  rescue ::ActiveRecord::StatementInvalid => e
-    raise StatementInvalid.new(e.message)
-  end
-
-  def sql_for_watcher_id_field(field, operator, value)
-    db_table = Watcher.table_name
-    "#{Issue.table_name}.id #{ operator == '=' ? 'IN' : 'NOT IN' } (SELECT #{db_table}.watchable_id FROM #{db_table} WHERE #{db_table}.watchable_type='Issue' AND " +
-      sql_for_field(field, '=', value, db_table, 'user_id') + ')'
-  end
-
-  def sql_for_member_of_group_field(field, operator, value)
-    if operator == '*' # Any group
-      groups = Group.all
-      operator = '=' # Override the operator since we want to find by assigned_to
-    elsif operator == "!*"
-      groups = Group.all
-      operator = '!' # Override the operator since we want to find by assigned_to
-    else
-      groups = Group.find_all_by_id(value)
-    end
-    groups ||= []
-
-    members_of_groups = groups.inject([]) {|user_ids, group|
-      if group && group.user_ids.present?
-        user_ids << group.user_ids
-      end
-      user_ids.flatten.uniq.compact
-    }.sort.collect(&:to_s)
-
-    '(' + sql_for_field("assigned_to_id", operator, members_of_groups, Issue.table_name, "assigned_to_id", false) + ')'
-  end
-
-  def sql_for_assigned_to_role_field(field, operator, value)
-    case operator
-    when "*", "!*" # Member / Not member
-      sw = operator == "!*" ? 'NOT' : ''
-      nl = operator == "!*" ? "#{Issue.table_name}.assigned_to_id IS NULL OR" : ''
-      "(#{nl} #{Issue.table_name}.assigned_to_id #{sw} IN (SELECT DISTINCT #{Member.table_name}.user_id FROM #{Member.table_name}" +
-        " WHERE #{Member.table_name}.project_id = #{Issue.table_name}.project_id))"
-    when "=", "!"
-      role_cond = value.any? ? 
-        "#{MemberRole.table_name}.role_id IN (" + value.collect{|val| "'#{connection.quote_string(val)}'"}.join(",") + ")" :
-        "1=0"
-      
-      sw = operator == "!" ? 'NOT' : ''
-      nl = operator == "!" ? "#{Issue.table_name}.assigned_to_id IS NULL OR" : ''
-      "(#{nl} #{Issue.table_name}.assigned_to_id #{sw} IN (SELECT DISTINCT #{Member.table_name}.user_id FROM #{Member.table_name}, #{MemberRole.table_name}" +
-        " WHERE #{Member.table_name}.project_id = #{Issue.table_name}.project_id AND #{Member.table_name}.id = #{MemberRole.table_name}.member_id AND #{role_cond}))"
-    end
   end
 
   def values_for(field)
