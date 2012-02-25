@@ -15,7 +15,6 @@
   <% end %>
 <% end %>
 
-<<<<<<< HEAD
 <% form_tag({ :controller => 'backtime', :action => 'index'}, :method => :get, :id => 'query_form') do %>
     <%= hidden_field_tag 'set_filter', '1' %>
     <div id="query_form_content" class="hide-when-print">
@@ -36,45 +35,23 @@
     </p>
 <% end %>
 
-=======
->>>>>>> a2cde99f2d43f225b6158af9f39356be2414179d
 <% if @backtimes and @backtimes.any? %>
 <table class='list'>
   <thead>
     <tr>
-<<<<<<< HEAD
       <%= sort_header_tag('time', :title => "Sort by #{l(:label_time)}", :caption => l(:label_time), :default_order => "asc") %>
       <%= sort_header_tag('back_time', :title => "Sort by #{l(:label_back_time)}", :caption => l(:label_back_time), :default_order => "asc") %>
       <%= sort_header_tag('partner', :title => "Sort by #{l(:label_partner)}", :caption => l(:label_partner), :default_order => "asc") %>
       <%= sort_header_tag('description', :title => "Sort by #{l(:label_description)}", :caption => l(:label_description), :default_order => "asc") %>
       <%= sort_header_tag('created_at', :title => "Sort by #{l(:label_date)}", :caption => l(:label_date), :default_order => "asc") %>
-=======
-      <th><%= l(:label_time) %></th>
-      <th><%= l(:label_back_time) %></th>
-      <th><%= l(:label_partner) %></th>
-      <th class='desription'><%= l(:label_description) %></th>
-      <th><%= l(:label_date) %></th>
->>>>>>> a2cde99f2d43f225b6158af9f39356be2414179d
     </tr>
   <thead>
   <tbody>
   <% for b in @backtimes %>
     <tr class="<%= cycle 'odd', 'even' %>">
-<<<<<<< HEAD
         <td><%= b.time %></td>
         <td><%= b.back_time %></td>
         <td><%= b.partner.lastname+" "+b.partner.firstname %></td>
-=======
-      <% if b.user == User.current %>
-        <td><%= b.time %></td>
-        <td><%= b.back_time %></td>
-        <td><%= b.partner %></td>
-      <% else %>
-        <td><%= b.back_time %></td>
-        <td><%= b.time %></td>
-        <td><%= b.user %></td>      
-      <% end %>
->>>>>>> a2cde99f2d43f225b6158af9f39356be2414179d
       <td class='description'><%= b.description %></td>
       <td><%= b.created_at.strftime('%Y-%m-%d') %></td>
     </tr>
