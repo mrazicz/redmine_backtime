@@ -3,7 +3,17 @@ class BacktimeController < ApplicationController
 
   before_filter :member_of_backtime, :check_db_backtime
 
+  helper :queries
+  include QueriesHelper
+  helper :sort
+  include SortHelper
+  
+  
   def index
+    retrieve_querybacktime
+    sort_init(@query.sort_criteria.empty? ? [['created_at', 'desc']] : @query.sort_criteria)
+    sort_update( @query.sortable_columns )
+   
     @users_list = Group.find_by_lastname('Backtime').users.all(:select => "users.*, SUM(backtimes.time) as times_total",
                            :joins => "LEFT JOIN backtimes AS backtimes ON backtimes.partner_id = users.id",
                            :group => "users.id",
@@ -26,13 +36,22 @@ class BacktimeController < ApplicationController
     @time_sum = tmp_sum1.sum(&:time) + tmp_sum2.sum(&:back_time)
     @backtime_sum = tmp_sum1.sum(&:back_time) + tmp_sum2.sum(&:time)
 
-    backtimes_with_issue = Backtime.all(:select => "backtimes.*, SUM(backtimes.time) as times",
-                                         :conditions => ["time_entry_id IS NOT NULL AND (backtimes.user_id = ? OR backtimes.partner_id = ?)", cuser, cuser],
+    backtimes_with_issue_user_position = Backtime.all(:select => "backtimes.*, SUM(backtimes.time) as times",
+                                         :conditions => "time_entry_id IS NOT NULL AND backtimes.user_id = #{cuser}" + ((@query.bt_filters(:partner_position=>false).nil?) ? "" : " AND #{@query.bt_filters(:partner_position=>false).to_s}" ),
                                          :joins => "LEFT JOIN time_entries AS te ON te.id = time_entry_id",
                                          :group => 'te.issue_id')
-    backtimes_without_issue = Backtime.all(:conditions => ["time_entry_id IS NULL AND (user_id = ? OR partner_id = ?)", cuser, cuser])
-    backtimes_all = backtimes_with_issue + backtimes_without_issue
-
+    backtimes_with_issue_partner_position = Backtime.all(:select => "backtimes.*, SUM(backtimes.time) as times",
+                                         :conditions => "time_entry_id IS NOT NULL AND backtimes.user_id = #{cuser}" + ((@query.bt_filters(:partner_position=>true).nil?) ? "" : " AND #{@query.bt_filters(:partner_position=>true).to_s}" ),
+                                         :joins => "LEFT JOIN time_entries AS te ON te.id = time_entry_id",
+                                         :group => 'te.issue_id')
+                                         
+    backtimes_without_issue_user_position = Backtime.all(	:select => "backtimes.*",
+    																				:conditions => "time_entry_id IS NULL AND backtimes.user_id = #{cuser}" + ((@query.bt_filters(:partner_position=>false).nil?) ? "" : " AND #{@query.bt_filters(:partner_position=>false).to_s}" ))
+    backtimes_without_issue_partner_position = Backtime.all(	:select => "backtimes.*",
+    																				:conditions => "time_entry_id IS NULL AND backtimes.partner_id = #{cuser}" + ((@query.bt_filters(:partner_position=>true).nil?) ? "" : " AND #{@query.bt_filters(:partner_position=>true).to_s}") )
+		
+    backtimes_all = backtimes_without_issue_partner_position + backtimes_without_issue_user_position + backtimes_with_issue_user_position + backtimes_with_issue_partner_position
+    
     backtimes_all.each do |b|
       unless b['times'].nil?
         b['time'] = b['times']
@@ -41,8 +60,20 @@ class BacktimeController < ApplicationController
         b['description'] += " [<a href='/projects/#{b.time_entry.issue.project.identifier}'>#{b.time_entry.issue.project.name}</a>]"
       end
     end
-    backtimes_all = backtimes_all.sort_by(&:created_at).reverse
-
+    
+		backtimes_all.each{ |b|
+			if b['partner_id'] == cuser
+				b['user_id'], b["partner_id"] = b['partner_id'], b["user_id"]
+				b['time'], b['back_time'] = b['back_time'], b['time']
+			end
+    }
+    
+    # sorting
+    @sort_criteria.criteria.reverse.each{ |c, o|
+    	backtimes_all = backtimes_all.sort_by(&c.to_sym)
+    	backtimes_all.reverse! unless o 
+    }
+    
     # paginate results
     @backtimes_count = backtimes_all.size
     @backtimes_pages = Paginator.new self, @backtimes_count, per_page_option, params['page']

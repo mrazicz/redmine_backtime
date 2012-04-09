@@ -2,5 +2,7 @@
 en:
   field_time: "Time"
   field_back_time: "Back time"
+  field_partner: "Partner"
   field_user: "User"
   field_description: "Description"
+  field_created_at: "Created at"
