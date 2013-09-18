@@ -1,3 +1,5 @@
 = Backtime
 
+This plugin is DEAD :)
+
 Redmine plugin for tracking time usage between professionals.
